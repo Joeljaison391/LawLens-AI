@@ -1,0 +1,11 @@
+{
+  "industry_name": "ABC Chemicals Ltd",
+  "square_feet": "15000 sq ft",
+  "water_source": "Borewell",
+  "drainage": "Underground sewage system",
+  "air_pollution": "Minimal emissions with scrubbers",
+  "waste_management": "Hazardous waste disposed through certified vendors",
+  "nearby_homes": "No residential areas within 2 km",
+  "water_level_depth": "15 meters",
+  "compliance_certifications": ["ISO 14001", "Pollution Control Board Approved"]
+}
