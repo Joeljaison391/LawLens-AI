@@ -1,0 +1,18 @@
+{
+    "invoice_number": null,
+    "date": "2025-01-01",
+    "expiry_date": "2026-01-01",
+    "company_name": "caddayn",
+    "branch_name": "kodaly",
+    "items": [
+        {
+            "sno": 1,
+            "qty": 5,
+            "description": "fire extinguisher of 1L",
+            "type": "ABC Dry Powder, CO2",
+            "unit_price": "$500.00",
+            "total_price": "$2500.00"
+        }
+    ],
+    "grand_total": "$2500.00"
+}
