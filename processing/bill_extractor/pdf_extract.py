@@ -5,7 +5,7 @@ import ollama
 import json
 import io
 import re
-from prompts import simple_json_extract
+from SoulSync.processing.bill_extractor.prompts import simple_json_extract
 
 def extract_text_from_pdf(pdf_path):
     """Extracts text from a PDF using PyMuPDF and OCR for scanned documents."""

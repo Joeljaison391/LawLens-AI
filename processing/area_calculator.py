@@ -49,14 +49,22 @@ def calculate_area(image, scale=1.0):
     real_area = total_area * (scale ** 2)  # Adjust area based on scale
     return real_area
 
-def main(input_path):
-    """Main function to process blueprint and estimate area."""
+def calculate_facility_area(input_path, dpi=300):
+    """
+    Process a blueprint (PDF or image) and return the calculated square area.
+    
+    Args:
+        input_path (str): Path to the PDF or image file
+        dpi (int): DPI for PDF conversion (default: 300)
+    
+    Returns:
+        float: Calculated square area
+    """
     if not os.path.exists(input_path):
-        print("❌ Error: File not found!")
-        return
+        raise FileNotFoundError("❌ Error: File not found!")
     
     # Load image from PDF or Image
-    image = load_image(input_path)
+    image = load_image(input_path, dpi)
     
     # Convert to PIL Image for OCR
     pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
@@ -67,9 +75,16 @@ def main(input_path):
     # Process image for contour detection
     processed_image = preprocess_image(image)
     
-    # Calculate square area
-    area = calculate_area(processed_image, scale)
-    print(f"✅ Estimated Square Area: {area:.2f} sq units")
+    # Calculate and return square area
+    return calculate_area(processed_image, scale)
+
+def main(input_path):
+    """Main function to process blueprint and estimate area."""
+    try:
+        area = calculate_facility_area(input_path)
+        print(f"✅ Estimated Square Area: {area:.2f} sq units")
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
 
 if __name__ == "__main__":
     input_path = "image.png"  # Replace with your file (PDF or Image)
