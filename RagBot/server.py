@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import List
 import json
 import chromadb
 import requests
@@ -24,7 +25,7 @@ print("Collection 'industrial-documents' is available.")
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # ----------------------------
-# Pydantic Model for Request
+# Pydantic Model for Report Request
 # ----------------------------
 class IndustrialApplication(BaseModel):
     industry_name: str
@@ -35,6 +36,16 @@ class IndustrialApplication(BaseModel):
     waste_management: str
     nearby_homes: str
     water_level_depth: str
+
+# ----------------------------
+# Pydantic Models for Chat
+# ----------------------------
+class Message(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[Message]
 
 # ----------------------------
 # Compliance Report Generation Functions
@@ -110,34 +121,55 @@ Waste Management: {industry_details.get('waste_management', 'N/A')}
 Nearby Homes: {industry_details.get('nearby_homes', 'N/A')}
 Water Level Depth: {industry_details.get('water_level_depth', 'N/A')}
 """
-    # Convert the query text to an embedding
     query_embedding = model.encode(query_text).tolist()
-    # Query ChromaDB for the most relevant compliance rules (top 5 results)
     results = collection.query(query_embeddings=[query_embedding], n_results=5)
     relevant_rules = results.get("documents", [[]])[0]
     print("\n🔹 **Top Relevant Compliance Rules from ChromaDB:**\n")
     for rule in relevant_rules:
         print(f"- {rule}")
-    # Generate and return the final compliance report using the retrieved rules
     report = generate_compliance_report_inner(industry_details, relevant_rules)
     return report
 
 # ----------------------------
-# FastAPI Endpoint
+# FastAPI Endpoints
 # ----------------------------
+
 @app.post("/generate_report")
 def generate_report(app_details: IndustrialApplication):
     """
     Expects an industrial application JSON in the request body and returns a compliance report.
     """
     try:
-        # Convert the Pydantic model to a dictionary
         industry_details = app_details.dict()
-        # Generate the compliance report
         report = generate_industrial_compliance_report(industry_details)
         return {"compliance_report": report}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/chat")
+def chat_endpoint(chat_req: ChatRequest):
+    """
+    Expects a JSON request with a list of chat messages (conversation history)
+    and returns the AI's reply. The conversation history is used as context.
+    """
+    payload = {
+        "model": "amethyst-13b-mistral",
+        "messages": [msg.dict() for msg in chat_req.messages],
+        "temperature": 0.7,
+        "max_tokens": -1,
+        "stream": False
+    }
+    headers = {"Content-Type": "application/json"}
+    try:
+        response = requests.post("http://localhost:1234/v1/chat/completions", headers=headers, json=payload)
+        if response.status_code == 200:
+            chat_reply = response.json().get("choices", [{}])[0].get("message", {}).get("content", "No reply received.")
+            return {"message": chat_reply}
+        else:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error calling chat API: {e}")
 
 # ----------------------------
 # Auto-run Server When File is Executed
